@@ -2,7 +2,7 @@
 
 An iPhone alarm project with per-alarm sound or vibration preferences and one-time, weekly, and monthly schedules.
 
-**Status: planning starter. No Swift app, Xcode project, working alarms, or deployment is included yet.** Platform feasibility is the first task. Target iPhone initially; a Mac is the development computer, not an additional app target.
+**Status: T01 incomplete. A minimal Swift/Xcode probe exists; working alarm behavior and deployment remain unverified.** Platform feasibility is the first task. Target iPhone initially; a Mac is the development computer, not an additional app target.
 
 ## Start here
 
@@ -32,7 +32,12 @@ Replace YOUR_USERNAME with your GitHub username. Use GitHub's normal authenticat
 
 ## Build and deployment
 
-Build instructions will be added when T01 creates the Xcode prototype. There is currently no build command or executable. See [deployment](docs/DEPLOYMENT.md) and [verification](docs/TEST_PLAN.md).
+T01 now includes a minimal, self-contained Xcode project at
+`T01Prototype/T01PrototypeApp.xcodeproj`. Open it on a Mac with Xcode 26 or
+later and run the `T01PrototypeApp` scheme. It is a notification scheduling
+probe, not the full application, and it has not been compiled or device-tested
+in this Windows workspace. See [T01 setup and feasibility](docs/FEASIBILITY.md),
+[deployment](docs/DEPLOYMENT.md), and [verification](docs/TEST_PLAN.md).
 
 ## Reference documentation
 
