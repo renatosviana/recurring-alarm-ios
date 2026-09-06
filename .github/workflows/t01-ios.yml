@@ -1,0 +1,62 @@
+name: T01 iOS simulator validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build T01 for the iOS Simulator
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project T01Prototype/T01PrototypeApp.xcodeproj \
+            -scheme T01PrototypeApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            clean build 2>&1 | tee "$RUNNER_TEMP/t01-xcodebuild.log"
+
+      - name: Run automated tests when a test target exists
+        shell: bash
+        run: |
+          set -o pipefail
+          project_file="T01Prototype/T01PrototypeApp.xcodeproj/project.pbxproj"
+          if grep -Eq 'com\.apple\.product-type\.(bundle\.unit-test|bundle\.ui-testing)' "$project_file"; then
+            xcodebuild \
+              -project T01Prototype/T01PrototypeApp.xcodeproj \
+              -scheme T01PrototypeApp \
+              -configuration Debug \
+              -sdk iphonesimulator \
+              -destination 'generic/platform=iOS Simulator' \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              test 2>&1 | tee "$RUNNER_TEMP/t01-xcodebuild-tests.log"
+          else
+            echo "No unit-test or UI-test target is configured; automated tests were not run."
+          fi
+
+      - name: Upload T01 build logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: t01-xcodebuild-logs
+          path: |
+            ${{ runner.temp }}/t01-xcodebuild.log
+            ${{ runner.temp }}/t01-xcodebuild-tests.log
+          if-no-files-found: warn

@@ -30,13 +30,25 @@ git push -u origin main
 
 Replace YOUR_USERNAME with your GitHub username. Use GitHub's normal authentication flow; never put tokens in project files. Push the extracted files, not just the ZIP. Review repository visibility before creating it.
 
+After pushing, GitHub Actions starts the `T01 iOS simulator validation` workflow
+on the push. To inspect it, open the repository on GitHub, select the
+**Actions** tab, select that workflow, and open the run for the commit you
+pushed. The build log is available from the run's **Artifacts** section as
+`t01-xcodebuild-logs`, including when the build fails. This workflow uses a
+shared `T01PrototypeApp` scheme, builds the actual project for an iOS
+Simulator without signing credentials, and reports when no automated test
+target is configured.
+
 ## Build and deployment
 
-T01 now includes a minimal, self-contained Xcode project at
+T01 now includes a minimal, self-contained Xcode project and a shared CI scheme at
 `T01Prototype/T01PrototypeApp.xcodeproj`. Open it on a Mac with Xcode 26 or
 later and run the `T01PrototypeApp` scheme. It is a notification scheduling
-probe, not the full application, and it has not been compiled or device-tested
-in this Windows workspace. See [T01 setup and feasibility](docs/FEASIBILITY.md),
+probe, not the full application. GitHub Actions can validate the simulator
+build, but simulator CI does not verify physical notification delivery,
+audibility, haptics, or device behavior. T01 therefore remains incomplete
+until physical-device checks are performed on a Mac with an iPhone. See [T01
+setup and feasibility](docs/FEASIBILITY.md),
 [deployment](docs/DEPLOYMENT.md), and [verification](docs/TEST_PLAN.md).
 
 ## Reference documentation
