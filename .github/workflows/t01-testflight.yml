@@ -33,8 +33,23 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Select and validate Xcode 26+
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcode_app="$(printf '%s\n' /Applications/Xcode_26*.app | sort | tail -n 1)"
+          test -n "$xcode_app" || { echo 'Xcode 26 or later is not installed on this runner.' >&2; exit 1; }
+          sudo xcode-select -s "$xcode_app/Contents/Developer"
+          xcode_version="$(xcodebuild -version | awk '$1 == "Xcode" { print $2; exit }')"
+          echo "Selected Xcode: $xcode_version"
+          test "${xcode_version%%.*}" -ge 26 || { echo "Selected Xcode is too old: $xcode_version" >&2; exit 1; }
+          iphoneos_sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
+          simulator_sdk="$(xcrun --sdk iphonesimulator --show-sdk-version)"
+          echo "iPhoneOS SDK: $iphoneos_sdk"
+          echo "iPhoneSimulator SDK: $simulator_sdk"
+          sdk_version="$iphoneos_sdk"
+          test "${sdk_version%%.*}" -ge 26 || { echo "Selected iPhoneOS SDK is too old: $sdk_version" >&2; exit 1; }
+          test "${simulator_sdk%%.*}" -ge 26 || { echo "Selected iPhoneSimulator SDK is too old: $simulator_sdk" >&2; exit 1; }
 
       - name: Validate non-secret configuration
         shell: bash
@@ -161,7 +176,13 @@ jobs:
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
           release-notes: ${{ inputs.release_notes }}
           uses-non-exempt-encryption: 'false'
-          wait-for-processing: 'true'
+          # The action's App Store API backend uses one 10-minute JWT and does
+          # not refresh it while polling. Upload only; Apple processing is
+          # checked separately in App Store Connect.
+          wait-for-processing: 'false'
+
+      - name: Report upload handoff
+        run: echo 'IPA upload completed; Apple processing, review, and TestFlight acceptance remain pending in App Store Connect.'
 
       - name: Upload safe release diagnostics
         if: ${{ always() }}

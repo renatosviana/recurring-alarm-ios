@@ -4,6 +4,29 @@ Status: T01 INCOMPLETE: simulator build passed; TestFlight upload and physical-d
 
 Timestamp: 2026-09-06 (America/New_York)
 
+## TestFlight rejection 2026-09-07
+
+Build `3414102912101` was rejected during App Store review with:
+
+- `ITMS-90022`: the archive did not contain the required 120x120 iPhone PNG icon.
+- `ITMS-90713`: the built Info.plist did not contain `CFBundleIconName`.
+- `ITMS-90725`: the archive was built with the iOS 18.5 SDK, while the submission requires the iOS 26 SDK or later.
+
+Fixes applied in this checkout:
+
+- Added an opaque temporary `AppIcon.appiconset` with 120x120, 180x180, and 1024x1024 PNGs.
+- Added the asset catalog to the app target Resources phase and set `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` plus the generated-plist icon name setting for Debug and Release.
+- Updated both GitHub workflows to select an installed Xcode 26+ bundle explicitly, print `xcodebuild -version` and SDK versions, and fail before building if the selected iPhoneOS SDK is older than 26.
+- Preserved the existing manual signing/export configuration in the TestFlight workflow and the unsigned simulator build flags in the simulator workflow.
+
+These changes address packaging and toolchain rejection reasons only; T01 remains incomplete until a new signed upload and physical-device verification produce evidence.
+
+## TestFlight processing polling limitation
+
+The `apple-actions/upload-testflight-build@v5` App Store API backend generates one JWT with a 600-second lifetime before upload and passes that same token to its visibility and processing polls. The action source does not refresh the token during polling. A 401 `NOT_AUTHORIZED` after approximately 13 minutes is therefore consistent with token expiry during polling; it is not evidence that the configured API key is invalid, so the API key was not replaced.
+
+The TestFlight workflow now sets `wait-for-processing: 'false'`. This avoids the unreliable long-lived poll and allows the upload handoff to complete, but the action skips release-note and encryption metadata updates when waiting is disabled. A successful workflow now means only that the IPA upload completed; Apple processing, review, and TestFlight acceptance must be checked separately in App Store Connect. No credential values were changed.
+
 The prototype is [T01Prototype/T01PrototypeApp.xcodeproj](../T01Prototype/T01PrototypeApp.xcodeproj),
 with [AlarmSchedulingProbe.swift](../T01Prototype/AlarmSchedulingProbe.swift) and a simple SwiftUI
 test screen. It is an investigation probe, not the application.
