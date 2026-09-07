@@ -1,6 +1,6 @@
 # Product specification
 
-Status: proposed specification; device feasibility remains unverified.
+Status: current-release scope revised after T01/T02. Device-dependent behavior remains unverified where noted in the feasibility and verification records.
 
 ## Goal
 
@@ -9,13 +9,14 @@ Let the user configure separate alarms that alert at chosen times and recur on s
 ## Requirements
 
 - Create, edit, delete, enable, and disable alarms independently.
-- Each alarm has an identifier, optional label, local hour/minute, desired alert mode (sound or vibration only), and a schedule.
+- Each alarm has an identifier, optional label, local hour/minute, desired alert mode (sound alert or silent notification), and a schedule.
 - Schedule types: one time on a selected date; weekly on one or more weekdays; monthly on one or more dates from 1 to 31.
 - Stopping the current occurrence preserves later recurring occurrences.
 - Show the next occurrence, permission state, and scheduling failures. A saved preference is not proof that an alarm was scheduled.
 - Operate offline with local storage and operating-system scheduling.
 - Editing or deleting an alarm must remove its obsolete system schedules without affecting another alarm.
-- Sound and vibration preferences are requirements to validate, not capabilities already proven. Confirm acceptable brief-alert behavior during T01; never silently substitute sound for vibration-only.
+- Sound alerts and silent notifications are in the current release scope. A silent notification means no app-configured notification sound; it does not guarantee vibration.
+- Vibration-only while locked, independently per alarm and without requiring phone-wide Silent Mode or an open app, is deferred as an unresolved future requirement. Do not represent silent notifications as satisfying it.
 
 ## Proposed first-version defaults
 
@@ -35,8 +36,20 @@ Let the user configure separate alarms that alert at chosen times and recur on s
 5. Editing 08:00 to 09:00 leaves no obsolete 08:00 schedule.
 6. Reopening the app preserves configurations and reconciles them with OS schedules.
 7. Permission denial or a scheduling error is visible; the UI does not report successful activation.
-8. A vibration-only device test produces no audible alert, if the platform supports this requirement.
+8. A sound-mode alarm requests a sound alert.
+9. A silent-mode alarm requests a silent notification; vibration is not promised.
+10. Vibration-only remains explicitly out of the current release acceptance criteria and unresolved for future investigation.
 
-## Open decisions for T01
+## Deferred future requirement
 
-Supported minimum iOS version; exact alert duration behavior; independent vibration controls; monthly scheduling without periodic app reopening; OS schedule capacity; time-zone/DST behavior; restart and termination behavior. Record any requirement that cannot be met and discuss the concrete tradeoff before claiming completion.
+Per-alarm vibration-only delivery while locked remains unresolved. The current
+release must not depend on it. A future investigation may test candidate
+approaches on a physical iPhone, but a device result alone must not be promoted
+to a supported API guarantee.
+
+## Open decisions for later tasks
+
+Supported minimum iOS version; exact alert duration behavior; monthly scheduling
+without periodic app reopening; OS schedule capacity; time-zone/DST behavior;
+restart and termination behavior. Record any requirement that cannot be met
+and discuss the concrete tradeoff before claiming completion.

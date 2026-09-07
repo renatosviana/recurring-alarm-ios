@@ -32,6 +32,10 @@ jobs:
           test "${iphoneos_sdk%%.*}" -ge 26 || { echo "Selected iPhoneOS SDK is too old: $iphoneos_sdk" >&2; exit 1; }
           test "${simulator_sdk%%.*}" -ge 26 || { echo "Selected iPhoneSimulator SDK is too old: $simulator_sdk" >&2; exit 1; }
 
+      - name: Validate architecture and scope contracts
+        shell: bash
+        run: bash scripts/validate-architecture.sh
+
       - name: Build T01 for the iOS Simulator
         shell: bash
         run: |

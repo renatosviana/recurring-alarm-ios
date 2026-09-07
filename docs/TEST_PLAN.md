@@ -1,6 +1,6 @@
 # Verification plan
 
-Status: NOT RUN.
+Status: PARTIAL: locked-screen sound and silent-notification observations recorded; all other checks remain individually tracked below.
 
 ## Automated checks after implementation
 
@@ -14,11 +14,11 @@ Status: NOT RUN.
 
 ## Physical iPhone checks
 
-Test sound and vibration-only independently. Record actual duration and audibility. Use short future test times; do not wait a month to test the recurrence calculator.
+Test sound alerts and silent notifications independently. A silent notification does not guarantee vibration. Record actual duration and audibility. Use short future test times; do not wait a month to test the recurrence calculator. Per-alarm vibration-only is deferred and is not a current-release acceptance test.
 
 | Scenario | Expected verification | Result |
 | --- | --- | --- |
-| Screen locked | Configured supported alert behavior | Not run |
+| Screen locked | Sound alert and silent notification behavior | Partial: user reported sound notification with sound/vibration and silent notification with no sound/no vibration; other locked-screen cases remain not run |
 | App backgrounded / terminated | Record each state separately | Not run |
 | Silent Mode / Focus / haptics settings | Record behavior, do not assume equivalence | Not run |
 | Device restart | Observe retained schedule behavior | Not run |

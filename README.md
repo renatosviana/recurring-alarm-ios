@@ -2,7 +2,7 @@
 
 An iPhone alarm project with per-alarm sound or vibration preferences and one-time, weekly, and monthly schedules.
 
-**Status: T01 incomplete. A minimal Swift/Xcode probe exists; working alarm behavior and deployment remain unverified.** Platform feasibility is the first task. Target iPhone initially; a Mac is the development computer, not an additional app target.
+**Status: T02 complete for the revised current-release scope.** A minimal Swift/Xcode probe supports sound alerts and silent notifications; physical delivery and deployment remain partly unverified. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
 
 ## Start here
 
@@ -46,8 +46,8 @@ T01 now includes a minimal, self-contained Xcode project and a shared CI scheme 
 later and run the `T01PrototypeApp` scheme. It is a notification scheduling
 probe, not the full application. GitHub Actions can validate the simulator
 build, but simulator CI does not verify physical notification delivery,
-audibility, haptics, or device behavior. T01 therefore remains incomplete
-until physical-device checks are performed on a Mac with an iPhone. See [T01
+audibility, haptics, or device behavior. The remaining physical-device checks
+must be performed on a Mac with an iPhone before release claims are made. See [T01
 setup and feasibility](docs/FEASIBILITY.md),
 [deployment](docs/DEPLOYMENT.md), and [verification](docs/TEST_PLAN.md).
 

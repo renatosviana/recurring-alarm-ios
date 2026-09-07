@@ -1,12 +1,12 @@
 # Execution plan
 
-All tasks are pending. Mark complete only with recorded evidence. Each task should produce a focused diff and a short explanation of what changed, what was checked, and remaining limitations.
+Tasks are tracked below. Mark complete only with recorded evidence. Each task should produce a focused diff and a short explanation of what changed, what was checked, and remaining limitations.
 
 | Task | Work | Completion evidence |
 | --- | --- | --- |
-| T01 | Inspect available environment; create minimal iOS alarm prototype; verify brief sound/vibration-only and scheduling options | docs/FEASIBILITY.md updated with SDK references and actual device results; unresolved requirements identified |
-| T02 | Refine SPEC.md using T01 results | Supported behavior and acceptance criteria explicit; material requirement changes reviewed with user |
-| T03 | Finalize architecture and dependencies | Document recurrence strategy, scheduling limits, partial failures, and permission handling |
+| T01 | Inspect available environment; create minimal iOS alarm prototype; verify brief sound and silent-notification behavior and scheduling options | Complete for the revised current-release scope: sound and silent-notification behavior recorded; vibration-only deferred as unresolved; remaining device checks remain explicit |
+| T02 | Refine SPEC.md using T01 results | Complete: current release supports sound alerts and silent notifications; vibration-only is deferred; recurrence requirements preserved |
+| T03 | Finalize architecture and dependencies | Complete: dependency boundary, recurrence strategy, scheduling limits, partial failures, permission handling, and CI scope-contract validation documented |
 | T04 | Create application foundation and local model/storage | Configuration persists across relaunch; actual build instructions in README |
 | T05 | Implement list and editor | Create/edit/delete and validate all supported schedule types |
 | T06 | Integrate OS scheduling and permissions | Correct scheduled/error state; denied permissions handled; device smoke test |

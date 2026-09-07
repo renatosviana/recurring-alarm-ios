@@ -1,8 +1,9 @@
 # Deployment and TestFlight preparation
 
-Status: NOT DEPLOYED. The simulator build is green, but T01 remains incomplete
-until a signed TestFlight build is installed and the required physical-iPhone
-checks are recorded. Do not begin T02 from a simulator result alone.
+Status: NOT DEPLOYED. The simulator build is green and T02 is complete for the
+revised scope, but release deployment and remaining physical-iPhone checks are
+still pending. Per-alarm vibration-only is deferred as an unresolved future
+requirement. Do not begin T03 from a simulator result alone.
 
 The release workflow is [`.github/workflows/t01-testflight.yml`](../.github/workflows/t01-testflight.yml).
 It is separate from simulator validation and has only `workflow_dispatch`; it
@@ -230,8 +231,8 @@ workflow once the account setup and secrets are correct.
 
 ## T01 boundary
 
-T01 remains incomplete until the signed build is installed on the iPhone and
-the physical observations are recorded. Do not mark vibration-only behavior,
+T01 feasibility is complete for the revised scope, but signed-build and
+remaining physical checks are still open. Do not mark vibration-only behavior,
 monthly indefinite recurrence, or any other open feasibility question as
-supported based on the simulator build or TestFlight upload alone. T02 has not
+supported based on the simulator build or TestFlight upload alone. T03 has not
 started.
