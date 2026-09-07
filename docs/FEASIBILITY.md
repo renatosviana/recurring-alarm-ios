@@ -1,6 +1,6 @@
 # T01 feasibility record
 
-Status: T01 INCOMPLETE: runnable Xcode project added; build and device verification are pending.
+Status: T01 INCOMPLETE: simulator build passed; TestFlight upload and physical-device verification are pending.
 
 Timestamp: 2026-09-06 (America/New_York)
 
@@ -14,7 +14,7 @@ test screen. It is an investigation probe, not the application.
 - Mac and macOS: unavailable in this workspace
 - Xcode / SDK: unavailable; `xcodebuild`, `xcrun`, `simctl`, `swift`, and `swiftc` were not found
 - iPhone model / iOS: unknown
-- Signing account and device access: unknown
+- Apple Developer Program: owner reports enrollment; Team ID, App ID, signing assets, and App Store Connect record still require setup below.
 - Candidate API: AlarmKit, introduced for iOS/iPadOS 26; deployment target and final SDK unavailable
 
 ## Prototype findings
@@ -92,9 +92,20 @@ These are documentation findings, not device observations. AlarmKit authorizatio
 
 - Repository inspection: passed; no pre-existing app target or build configuration.
 - Environment inspection: passed; Windows host identified, Apple build tools unavailable.
-- Xcode project parse/build: not run; no compiler or Xcode is installed.
-- Simulator check: not run; no simulator tools are installed.
-- Physical iPhone check: not run; no iPhone, Mac, signing account, or built app was available.
+- Xcode project parse/build: passed in the first GitHub Actions simulator workflow run, `T01 iOS simulator validation` (reported green by the owner; run ID was not recorded here).
+- Simulator check: passed in GitHub Actions on the cloud macOS runner; this validates compilation for the iOS Simulator only.
+- Signed archive/TestFlight upload: not run; Apple identifiers, signing materials, App Store Connect credentials, and the app record must be configured.
+- Physical iPhone check: pending; no device delivery, audibility, haptics, lock-screen, recurrence, or notification behavior has been verified.
+
+## TestFlight preparation
+
+The separate manually triggered workflow is [`.github/workflows/t01-testflight.yml`](../.github/workflows/t01-testflight.yml).
+It is preparation only until the account setup in [DEPLOYMENT.md](DEPLOYMENT.md) is complete.
+The workflow uses a temporary macOS keychain, downloads the App Store provisioning
+profile for the configured App ID, creates a unique build number from the GitHub
+run, and uploads only the IPA to App Store Connect. It does not commit or upload
+certificates, private keys, provisioning profiles, archives, or credentials as
+repository files. Release diagnostics contain build/export output only.
 
 ## Setup and physical-device test procedure required before T02
 
