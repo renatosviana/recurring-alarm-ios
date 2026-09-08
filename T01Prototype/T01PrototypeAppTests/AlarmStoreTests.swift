@@ -77,4 +77,23 @@ final class AlarmStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.alarms.first?.schedule, .oneTime(date))
         XCTAssertEqual(reloaded.alarms.first?.isEnabled, false)
     }
+
+    func testEditingSchedulePreservesIdentityAndAlertMode() throws {
+        let (defaults, key) = makeDefaults()
+        let original = Alarm(label: "Payday", mode: .silentNotification,
+                             schedule: .monthly(days: [1, 15], hour: 9, minute: 0))
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        try store.upsert(original)
+
+        let edited = Alarm(id: original.id, label: "Payday weekly", mode: original.mode,
+                           schedule: .weekly(weekdays: [2, 5], hour: 10, minute: 30))
+        try store.upsert(edited)
+        let reloaded = AlarmStore(defaults: defaults, storageKey: key)
+
+        XCTAssertEqual(reloaded.alarms.count, 1)
+        XCTAssertEqual(reloaded.alarms.first?.id, original.id)
+        XCTAssertEqual(reloaded.alarms.first?.mode, .silentNotification)
+        XCTAssertEqual(reloaded.alarms.first?.schedule,
+                       .weekly(weekdays: [2, 5], hour: 10, minute: 30))
+    }
 }

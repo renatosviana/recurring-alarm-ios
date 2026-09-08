@@ -18,6 +18,7 @@ require() {
 require "$project" 'A50000000000000000000002 /* T01PrototypeAppTests */' 'test target exists in the project'
 require "$project" 'productType = "com.apple.product-type.bundle.unit-test"' 'test target is an XCTest bundle'
 require "$project" 'A20000000000000000000005 /* AlarmStoreTests.swift */' 'test source is referenced by the project'
+require "$project" 'A20000000000000000000009 /* AlarmEditorView.swift */' 'editor source is referenced by the project'
 require "$project" 'ENABLE_TESTABILITY = YES' 'app Debug configuration enables testability'
 require "$project" 'PRODUCT_MODULE_NAME = T01PrototypeApp' 'app module name is explicit'
 require "$project" 'TEST_HOST = "$(BUILT_PRODUCTS_DIR)/T01PrototypeApp.app/T01PrototypeApp"' 'test host points to the app executable'

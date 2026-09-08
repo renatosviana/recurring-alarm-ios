@@ -7,8 +7,8 @@ Tasks are tracked below. Mark complete only with recorded evidence. Each task sh
 | T01 | Inspect available environment; create minimal iOS alarm prototype; verify brief sound and silent-notification behavior and scheduling options | Complete for the revised current-release scope: sound and silent-notification behavior recorded; vibration-only deferred as unresolved; remaining device checks remain explicit |
 | T02 | Refine SPEC.md using T01 results | Complete: current release supports sound alerts and silent notifications; vibration-only is deferred; recurrence requirements preserved |
 | T03 | Finalize architecture and dependencies | Complete: dependency boundary, recurrence strategy, scheduling limits, partial failures, permission handling, and CI scope-contract validation documented |
-| T04 | Create application foundation and local model/storage | Implementation complete; validation pending corrected macOS XCTest execution: Codable alarm model, UserDefaults-backed store, persistence/replacement/deletion tests, and iOS build/test instructions remain in README |
-| T05 | Implement list and editor | Create/edit/delete and validate all supported schedule types |
+| T04 | Create application foundation and local model/storage | Complete: macOS CI build and XCTest run passed; Codable alarm model, UserDefaults-backed store, persistence/replacement/deletion tests, and iOS build/test instructions are present |
+| T05 | Implement list and editor | Implementation complete; validation pending macOS CI XCTest execution: create/edit/delete, enable/disable, alert-mode selection, and all supported schedule editors are implemented |
 | T06 | Integrate OS scheduling and permissions | Correct scheduled/error state; denied permissions handled; device smoke test |
 | T07 | Implement recurrence and schedule replacement | Date boundary tests pass; edits/deletes leave no duplicate or stale schedules |
 | T08 | Execute automated and physical-device test plan | Results recorded in docs/TEST_PLAN.md; no invented simulator/device equivalence |

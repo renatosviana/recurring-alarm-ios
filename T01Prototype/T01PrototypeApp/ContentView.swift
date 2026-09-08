@@ -1,149 +1,84 @@
+import Foundation
 import SwiftUI
-import UserNotifications
 
 struct ContentView: View {
-    private let center = UNUserNotificationCenter.current()
-    private let probe = AlarmSchedulingProbe()
     @StateObject private var alarmStore = AlarmStore()
-    @State private var status = "No probe requests scheduled yet."
+    @State private var showingEditor = false
+    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Alert modes") {
-                    Button("Schedule sound alarm (2 minutes)") {
-                        scheduleOneTime(mode: .sound)
+            Group {
+                if alarmStore.alarms.isEmpty {
+                    ContentUnavailableView("No alarms", systemImage: "alarm",
+                                           description: Text("Add an alarm to save its schedule locally."))
+                } else {
+                    List {
+                        ForEach(alarmStore.alarms) { alarm in
+                            NavigationLink {
+                                AlarmEditorView(store: alarmStore, alarm: alarm)
+                            } label: {
+                                AlarmRow(alarm: alarm)
+                            }
+                        }
+                        .onDelete(perform: delete)
                     }
-                    Button("Schedule silent notification (2 minutes)") {
-                        scheduleOneTime(mode: .silentNotification)
-                    }
-                    Text("Silent notifications configure no sound and do not guarantee vibration.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                Section("Recurrence") {
-                    Button("Schedule Monday / Wednesday / Friday") {
-                        scheduleWeekly()
-                    }
-                    Button("Schedule monthly 1st / 15th / 31st") {
-                        scheduleMonthly()
-                    }
-                    Button("Schedule repeating monthly 1st / 15th / 31st") {
-                        scheduleMonthlyRepeating()
-                    }
-                    Text("The first monthly button uses a finite 12-month set. The second tests repeating day-of-month triggers directly.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                Section("Inspection") {
-                    Button("Count pending probe requests") {
-                        inspectPending()
-                    }
-                    Button("Cancel all probe requests", role: .destructive) {
-                        center.removeAllPendingNotificationRequests()
-                        status = "Cancelled all pending probe requests."
-                    }
-                    Text(status)
-                        .font(.footnote)
-                    Text("Saved configurations: \(alarmStore.alarms.count)")
-                        .font(.footnote)
                 }
             }
-            .navigationTitle("T01 Alarm Probe")
-        }
-    }
-
-    private func scheduleOneTime(mode: AlarmSchedulingProbe.AlertMode) {
-        schedule(AlarmSchedulingProbe.Schedule.oneTime(
-            Date(timeIntervalSinceNow: 120)), mode: mode)
-    }
-
-    private func scheduleWeekly() {
-        let time = Calendar.autoupdatingCurrent.dateComponents([.hour, .minute], from: Date())
-        schedule(.weekly(weekdays: [2, 4, 6], hour: time.hour ?? 9, minute: time.minute ?? 0),
-                 mode: .sound)
-    }
-
-    private func scheduleMonthly() {
-        let time = Calendar.autoupdatingCurrent.dateComponents([.hour, .minute], from: Date())
-        schedule(.monthly(days: [1, 15, 31], hour: time.hour ?? 9, minute: time.minute ?? 0),
-                 mode: .sound)
-    }
-
-    private func scheduleMonthlyRepeating() {
-        let time = Calendar.autoupdatingCurrent.dateComponents([.hour, .minute], from: Date())
-        let alarm = AlarmSchedulingProbe.Alarm(
-            id: UUID(), title: "T01 repeating monthly probe", mode: .sound,
-            schedule: .monthly(days: [1, 15, 31], hour: time.hour ?? 9, minute: time.minute ?? 0))
-        schedule(requests: probe.repeatingMonthlyRequests(for: alarm))
-    }
-
-    private func schedule(_ schedule: AlarmSchedulingProbe.Schedule,
-                          mode: AlarmSchedulingProbe.AlertMode) {
-        Task { @MainActor in
-            do {
-                let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-                guard granted else {
-                    status = "Notification permission was not granted."
-                    return
+            .navigationTitle("Alarms")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button { showingEditor = true } label: {
+                        Label("Add alarm", systemImage: "plus")
+                    }
                 }
-
-                let alarm = AlarmSchedulingProbe.Alarm(
-                    id: UUID(), title: "T01 probe", mode: mode, schedule: schedule)
-                let saved = Alarm(
-                    id: alarm.id,
-                    label: alarm.title,
-                    mode: mode == .sound ? .sound : .silentNotification,
-                    schedule: modelSchedule(schedule))
-                try alarmStore.upsert(saved)
-                let requests = probe.requests(for: alarm)
-                try await add(requests)
-            } catch {
-                status = "Scheduling failed: \(error.localizedDescription)"
+            }
+            .sheet(isPresented: $showingEditor) {
+                NavigationStack { AlarmEditorView(store: alarmStore) }
+            }
+            .alert("Could not update alarm", isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } })) {
+                Button("OK") { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "Unknown error")
             }
         }
     }
 
-    private func schedule(requests: [UNNotificationRequest]) {
-        Task { @MainActor in
-            do {
-                let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-                guard granted else {
-                    status = "Notification permission was not granted."
-                    return
-                }
-                try await add(requests)
-            } catch {
-                status = "Scheduling failed: \(error.localizedDescription)"
+    private func delete(at offsets: IndexSet) {
+        do {
+            for index in offsets { try alarmStore.remove(id: alarmStore.alarms[index].id) }
+        } catch { errorMessage = error.localizedDescription }
+    }
+}
+
+private struct AlarmRow: View {
+    let alarm: Alarm
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(alarm.label.isEmpty ? "Untitled alarm" : alarm.label).font(.headline)
+                Text(alarm.schedule.summary).font(.subheadline).foregroundStyle(.secondary)
+                Text(alarm.mode == .sound ? "Sound alert" : "Silent notification")
+                    .font(.caption).foregroundStyle(.secondary)
             }
+            Spacer()
+            if !alarm.isEnabled { Text("Off").font(.caption).foregroundStyle(.secondary) }
         }
     }
+}
 
-    private func add(_ requests: [UNNotificationRequest]) async throws {
-        for request in requests {
-            try await center.add(request)
-        }
-        status = "Added \(requests.count) notification request(s)."
-    }
-
-    private func inspectPending() {
-        Task { @MainActor in
-            let requests = await center.pendingNotificationRequests()
-            let probeRequests = requests.filter { $0.identifier.hasPrefix("t01-") }
-            status = "Pending probe requests: \(probeRequests.count) (all app requests: \(requests.count))."
-        }
-    }
-
-    private func modelSchedule(_ schedule: AlarmSchedulingProbe.Schedule) -> AlarmSchedule {
-        switch schedule {
-        case .oneTime(let date):
-            return .oneTime(date)
+private extension AlarmSchedule {
+    var summary: String {
+        switch self {
+        case .oneTime(let date): return date.formatted(date: .abbreviated, time: .shortened)
         case .weekly(let weekdays, let hour, let minute):
-            return .weekly(weekdays: weekdays, hour: hour, minute: minute)
+            let names = weekdays.sorted().map { Calendar.current.weekdaySymbols[$0 - 1].prefix(3) }
+            return "Weekly \(names.joined(separator: ", ")) at \(String(format: "%02d:%02d", hour, minute))"
         case .monthly(let days, let hour, let minute):
-            return .monthly(days: days, hour: hour, minute: minute)
+            return "Monthly \(days.sorted().map(String.init).joined(separator: ", ")) at \(String(format: "%02d:%02d", hour, minute))"
         }
     }
 }
