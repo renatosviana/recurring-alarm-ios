@@ -114,9 +114,18 @@ The following physical-device observations were reported for the locked-screen s
 | --- | --- |
 | Sound alarm while locked | Notification, sound, and vibration |
 | No-sound alarm while locked | Notification, no sound, and no vibration |
+| Sound alarm while app is open | Notification was observed, but no sound played |
 | Alert duration and repeat behavior | Not run / no observation supplied |
 | Silent Mode, Focus, notification, and haptic settings | Not run / no observation supplied |
 | App terminated or device restarted | Not run / no observation supplied |
+
+The reported locked-screen sound delivery is distinct from foreground behavior:
+the sound alarm played while the screen was locked, but remained silent while the
+app was open. The app now installs a `UNUserNotificationCenterDelegate` and uses
+`willPresent` to request banner/list presentation plus sound for sound alarms,
+and banner/list presentation without sound for silent notifications. This fix is
+implemented but requires a new physical-device test; it does not change the
+background scheduling result or establish delivery on its own.
 
 The documentation conclusion above is sufficient to reject “reliable scheduled vibration-only alert while locked” as a supported API capability. The reported no-sound result confirms this test run but does not establish an app-controlled vibration-only capability. No full physical-device pass is claimed.
 

@@ -196,6 +196,44 @@ final class AlarmStoreTests: XCTestCase {
         }
         XCTAssertTrue(message.contains("add t01-"))
     }
+
+    func testForegroundSoundPresentationIncludesSound() {
+        let content = UNMutableNotificationContent()
+        content.title = "Sound"
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "sound",
+                                             content: content,
+                                             trigger: nil)
+        let notification = UNNotification(request: request, date: Date())
+        var options: UNNotificationPresentationOptions = []
+
+        NotificationPresentationDelegate.shared.userNotificationCenter(
+            UNUserNotificationCenter.current(),
+            willPresent: notification) { options = $0 }
+
+        XCTAssertTrue(options.contains(.banner))
+        XCTAssertTrue(options.contains(.list))
+        XCTAssertTrue(options.contains(.sound))
+    }
+
+    func testForegroundSilentPresentationOmitsSound() {
+        let content = UNMutableNotificationContent()
+        content.title = "Silent"
+        content.sound = nil
+        let request = UNNotificationRequest(identifier: "silent",
+                                             content: content,
+                                             trigger: nil)
+        let notification = UNNotification(request: request, date: Date())
+        var options: UNNotificationPresentationOptions = []
+
+        NotificationPresentationDelegate.shared.userNotificationCenter(
+            UNUserNotificationCenter.current(),
+            willPresent: notification) { options = $0 }
+
+        XCTAssertTrue(options.contains(.banner))
+        XCTAssertTrue(options.contains(.list))
+        XCTAssertFalse(options.contains(.sound))
+    }
 }
 
 private enum FakeNotificationError: Error { case addFailed }

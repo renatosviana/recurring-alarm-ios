@@ -2,7 +2,7 @@
 
 An iPhone alarm project with per-alarm sound-alert or silent-notification preferences and one-time, weekly, and monthly schedules.
 
-**Status: T06 implementation complete; macOS XCTest and physical delivery validation pending.** The app now persists alarms, presents a list/editor, and reconciles enabled saved alarms to UserNotifications requests for sound alerts or silent notifications. “Scheduled” means the request was accepted by the notification API; it does not verify delivery. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
+**Status: T06 implementation complete; foreground presentation fix pending macOS XCTest and updated physical delivery validation.** The app now persists alarms, presents a list/editor, reconciles enabled saved alarms to UserNotifications requests, and explicitly presents foreground sound or silent notifications. “Scheduled” means the request was accepted by the notification API; it does not verify delivery. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
 
 ## Start here
 

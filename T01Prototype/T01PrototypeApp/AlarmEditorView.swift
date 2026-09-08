@@ -5,6 +5,7 @@ struct AlarmEditorView: View {
     @ObservedObject private var store: AlarmStore
     @Environment(\.dismiss) private var dismiss
     private let onSaved: () -> Void
+    private let onDeleted: () -> Void
     private let existingID: UUID?
     @State private var label: String
     @State private var mode: AlertMode
@@ -15,6 +16,7 @@ struct AlarmEditorView: View {
     @State private var monthDays: Set<Int>
     @State private var isEnabled: Bool
     @State private var validationMessage: String?
+    @State private var showingDeleteConfirmation = false
 
     enum ScheduleKind: String, CaseIterable, Identifiable {
         case oneTime = "One time"
@@ -23,9 +25,11 @@ struct AlarmEditorView: View {
         var id: String { rawValue }
     }
 
-    init(store: AlarmStore, alarm: Alarm? = nil, onSaved: @escaping () -> Void = {}) {
+    init(store: AlarmStore, alarm: Alarm? = nil, onSaved: @escaping () -> Void = {},
+         onDeleted: @escaping () -> Void = {}) {
         self.store = store
         self.onSaved = onSaved
+        self.onDeleted = onDeleted
         existingID = alarm?.id
         _label = State(initialValue: alarm?.label ?? "")
         _mode = State(initialValue: alarm?.mode ?? .sound)
@@ -92,6 +96,13 @@ struct AlarmEditorView: View {
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
+            if existingID != nil {
+                Section {
+                    Button("Delete Alarm", role: .destructive) {
+                        showingDeleteConfirmation = true
+                    }
+                }
+            }
         }
         .navigationTitle(existingID == nil ? "New alarm" : "Edit alarm")
         .toolbar {
@@ -102,6 +113,13 @@ struct AlarmEditorView: View {
             get: { validationMessage != nil }, set: { if !$0 { validationMessage = nil } })) {
             Button("OK") { validationMessage = nil }
         } message: { Text(validationMessage ?? "Check the alarm values.") }
+        .confirmationDialog("Delete this alarm?", isPresented: $showingDeleteConfirmation,
+                            titleVisibility: .visible) {
+            Button("Delete Alarm", role: .destructive) { delete() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This removes the saved alarm and cancels its pending notifications.")
+        }
     }
 
     private func save() {
@@ -118,6 +136,17 @@ struct AlarmEditorView: View {
             dismiss()
         } catch let error as AlarmValidationError { validationMessage = message(for: error) }
         catch { validationMessage = error.localizedDescription }
+    }
+
+    private func delete() {
+        guard let existingID else { return }
+        do {
+            try store.remove(id: existingID)
+            onDeleted()
+            dismiss()
+        } catch {
+            validationMessage = error.localizedDescription
+        }
     }
 
     private func weekdayBinding(_ weekday: Int) -> Binding<Bool> {

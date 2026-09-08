@@ -23,7 +23,9 @@ struct ContentView: View {
                     List {
                         ForEach(alarmStore.alarms) { alarm in
                             NavigationLink {
-                                AlarmEditorView(store: alarmStore, alarm: alarm, onSaved: reconcile)
+                                AlarmEditorView(store: alarmStore, alarm: alarm,
+                                                onSaved: reconcile,
+                                                onDeleted: { cleanupDeletedAlarm(alarm.id) })
                             } label: {
                                 AlarmRow(alarm: alarm, state: scheduler.states[alarm.id])
                             }
@@ -65,10 +67,18 @@ struct ContentView: View {
             let deletedIDs = offsets.map { alarmStore.alarms[$0].id }
             for id in deletedIDs { try alarmStore.remove(id: id) }
             Task {
-                for id in deletedIDs { await scheduler.removeRequests(for: id) }
-                await scheduler.reconcileAll()
+                await cleanupDeletedAlarms(deletedIDs)
             }
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    private func cleanupDeletedAlarm(_ id: UUID) {
+        Task { await cleanupDeletedAlarms([id]) }
+    }
+
+    private func cleanupDeletedAlarms(_ ids: [UUID]) async {
+        for id in ids { await scheduler.removeRequests(for: id) }
+        await scheduler.reconcileAll()
     }
 }
 
