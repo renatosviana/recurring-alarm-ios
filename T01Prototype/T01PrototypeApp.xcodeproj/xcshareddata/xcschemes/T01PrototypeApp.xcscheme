@@ -20,6 +20,20 @@
                ReferencedContainer = "container:T01PrototypeApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A50000000000000000000002"
+               BuildableName = "T01PrototypeAppTests.xctest"
+               BlueprintName = "T01PrototypeAppTests"
+               ReferencedContainer = "container:T01PrototypeApp.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
