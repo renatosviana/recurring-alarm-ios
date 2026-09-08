@@ -201,15 +201,7 @@ final class AlarmStoreTests: XCTestCase {
         let content = UNMutableNotificationContent()
         content.title = "Sound"
         content.sound = .default
-        let request = UNNotificationRequest(identifier: "sound",
-                                             content: content,
-                                             trigger: nil)
-        let notification = UNNotification(request: request, date: Date())
-        var options: UNNotificationPresentationOptions = []
-
-        NotificationPresentationDelegate.shared.userNotificationCenter(
-            UNUserNotificationCenter.current(),
-            willPresent: notification) { options = $0 }
+        let options = NotificationPresentationDelegate.presentationOptions(for: content)
 
         XCTAssertTrue(options.contains(.banner))
         XCTAssertTrue(options.contains(.list))
@@ -220,15 +212,7 @@ final class AlarmStoreTests: XCTestCase {
         let content = UNMutableNotificationContent()
         content.title = "Silent"
         content.sound = nil
-        let request = UNNotificationRequest(identifier: "silent",
-                                             content: content,
-                                             trigger: nil)
-        let notification = UNNotification(request: request, date: Date())
-        var options: UNNotificationPresentationOptions = []
-
-        NotificationPresentationDelegate.shared.userNotificationCenter(
-            UNUserNotificationCenter.current(),
-            willPresent: notification) { options = $0 }
+        let options = NotificationPresentationDelegate.presentationOptions(for: content)
 
         XCTAssertTrue(options.contains(.banner))
         XCTAssertTrue(options.contains(.list))

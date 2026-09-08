@@ -8,10 +8,14 @@ final class NotificationPresentationDelegate: NSObject, UNUserNotificationCenter
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler:
                                 @escaping (UNNotificationPresentationOptions) -> Void) {
-        let options: UNNotificationPresentationOptions = notification.request.content.sound == nil
+        completionHandler(Self.presentationOptions(for: notification.request.content))
+    }
+
+    static func presentationOptions(for content: UNNotificationContent)
+        -> UNNotificationPresentationOptions {
+        content.sound == nil
             ? [.banner, .list]
             : [.banner, .list, .sound]
-        completionHandler(options)
     }
 }
 
