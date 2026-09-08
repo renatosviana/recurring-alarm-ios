@@ -67,6 +67,7 @@ struct AlarmSchedulingProbe {
 
         switch alarm.schedule {
         case .oneTime(let date):
+            guard date > start else { return [] }
             return [request(id: alarm.id, content: content,
                             trigger: UNCalendarNotificationTrigger(
                                 dateMatching: calendar.dateComponents(

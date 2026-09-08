@@ -197,6 +197,70 @@ final class AlarmStoreTests: XCTestCase {
         XCTAssertTrue(message.contains("add t01-"))
     }
 
+    func testExpiredOneTimeAlarmIsNotScheduled() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let alarm = Alarm(label: "Expired", mode: .sound,
+                          schedule: .oneTime(Date(timeIntervalSinceNow: -60)))
+        try store.upsert(alarm)
+        let planner = AlarmSchedulingProbe()
+        let staleRequest = planner.requests(for: alarm,
+                                            from: Date(timeIntervalSinceNow: -120)).first!
+        let center = FakeNotificationCenter(authorized: true, pending: [staleRequest])
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center,
+                                                     planner: planner)
+
+        await coordinator.reconcile(alarm)
+
+        XCTAssertEqual(coordinator.states[alarm.id], .scheduled)
+        XCTAssertEqual(center.removed, [staleRequest.identifier])
+        XCTAssertTrue(planner.requests(for: alarm).isEmpty)
+    }
+
+    func testMonthlyPlannerSkipsInvalidDayAtMonthBoundary() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let start = calendar.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let alarm = Alarm(label: "Month end", mode: .sound,
+                          schedule: .monthly(days: [31], hour: 9, minute: 0))
+
+        let requests = AlarmSchedulingProbe().requests(for: alarm, calendar: calendar,
+                                                       from: start, months: 2)
+
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertTrue(requests[0].identifier.contains("monthly-"))
+    }
+
+    func testRecurringTimePickerConvertsAMAndPMBoundaries() {
+        XCTAssertEqual(AlarmEditorView.hour24(hour12: 12, isPM: false), 0)
+        XCTAssertEqual(AlarmEditorView.hour24(hour12: 12, isPM: true), 12)
+        XCTAssertEqual(AlarmEditorView.hour24(hour12: 9, isPM: false), 9)
+        XCTAssertEqual(AlarmEditorView.hour24(hour12: 9, isPM: true), 21)
+    }
+
+    func testScheduleReplacementAddsNewRequestsAndRemovesStaleOnes() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let id = UUID()
+        let original = Alarm(id: id, label: "Original", mode: .sound,
+                             schedule: .weekly(weekdays: [2], hour: 9, minute: 0))
+        let replacement = Alarm(id: id, label: "Replacement", mode: .sound,
+                                schedule: .weekly(weekdays: [3], hour: 9, minute: 0))
+        try store.upsert(replacement)
+        let planner = AlarmSchedulingProbe()
+        let staleRequest = planner.requests(for: original).first!
+        let center = FakeNotificationCenter(authorized: true, pending: [staleRequest])
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center,
+                                                     planner: planner)
+
+        await coordinator.reconcile(replacement)
+
+        XCTAssertEqual(coordinator.states[id], .scheduled)
+        XCTAssertEqual(center.added.count, 1)
+        XCTAssertNotEqual(center.added[0].identifier, staleRequest.identifier)
+        XCTAssertEqual(center.removed, [staleRequest.identifier])
+    }
+
     func testForegroundSoundPresentationIncludesSound() {
         let content = UNMutableNotificationContent()
         content.title = "Sound"

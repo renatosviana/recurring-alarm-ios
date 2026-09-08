@@ -101,8 +101,12 @@ private struct AlarmRow: View {
     }
 
     private var statusText: String {
+        if case .oneTime(let date) = alarm.schedule,
+           date <= Date(), state == .scheduled {
+            return "Not scheduled"
+        }
         switch state {
-        case .scheduled: return "Scheduled; delivery not verified"
+        case .scheduled: return "Scheduled"
         case .permissionDenied: return "Permission denied"
         case .partialFailure(let message): return "Partially scheduled: \(message)"
         case .failed(let message): return "Scheduling failed: \(message)"

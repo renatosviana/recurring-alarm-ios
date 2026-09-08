@@ -71,7 +71,29 @@ struct AlarmEditorView: View {
                 if kind == .oneTime {
                     DatePicker("Date and time", selection: $oneTimeDate, in: Date()..., displayedComponents: [.date, .hourAndMinute])
                 } else {
-                    DatePicker("Time", selection: $time, displayedComponents: [.hourAndMinute])
+                    HStack {
+                        Picker("Hour", selection: recurringHourBinding) {
+                            ForEach(1...12, id: \.self) { hour in
+                                Text(String(hour)).tag(hour)
+                            }
+                        }
+                        .labelsHidden()
+                        .accessibilityLabel("Hour")
+                        Text(":")
+                        Picker("Minute", selection: recurringMinuteBinding) {
+                            ForEach(0..<60, id: \.self) { minute in
+                                Text(String(format: "%02d", minute)).tag(minute)
+                            }
+                        }
+                        .labelsHidden()
+                        .accessibilityLabel("Minute")
+                        Picker("Period", selection: recurringPeriodBinding) {
+                            Text("AM").tag(false)
+                            Text("PM").tag(true)
+                        }
+                        .labelsHidden()
+                        .accessibilityLabel("AM or PM")
+                    }
                 }
             }
             if kind == .weekly {
@@ -147,6 +169,44 @@ struct AlarmEditorView: View {
         } catch {
             validationMessage = error.localizedDescription
         }
+    }
+
+    private var recurringHour: Int {
+        let hour = Calendar.current.component(.hour, from: time)
+        return hour % 12 == 0 ? 12 : hour % 12
+    }
+
+    private var recurringMinute: Int {
+        Calendar.current.component(.minute, from: time)
+    }
+
+    private var recurringIsPM: Bool {
+        Calendar.current.component(.hour, from: time) >= 12
+    }
+
+    private var recurringHourBinding: Binding<Int> {
+        Binding(get: { recurringHour }, set: { setRecurringTime(hour12: $0) })
+    }
+
+    private var recurringMinuteBinding: Binding<Int> {
+        Binding(get: { recurringMinute }, set: { setRecurringTime(minute: $0) })
+    }
+
+    private var recurringPeriodBinding: Binding<Bool> {
+        Binding(get: { recurringIsPM }, set: { setRecurringTime(isPM: $0) })
+    }
+
+    private func setRecurringTime(hour12: Int? = nil, minute: Int? = nil,
+                                  isPM: Bool? = nil) {
+        let hour = Self.hour24(hour12: hour12 ?? recurringHour,
+                               isPM: isPM ?? recurringIsPM)
+        time = Calendar.current.date(bySettingHour: hour,
+                                     minute: minute ?? recurringMinute,
+                                     second: 0, of: time) ?? time
+    }
+
+    static func hour24(hour12: Int, isPM: Bool) -> Int {
+        (hour12 % 12) + (isPM ? 12 : 0)
     }
 
     private func weekdayBinding(_ weekday: Int) -> Binding<Bool> {

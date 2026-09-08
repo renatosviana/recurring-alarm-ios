@@ -60,6 +60,13 @@ final class AlarmSchedulingCoordinator: ObservableObject {
             let desired = planner.requests(for: alarm)
             let existingIDs = Set(owned.map(\.identifier))
             let desiredIDs = Set(desired.map(\.identifier))
+            if desired.isEmpty {
+                if !existingIDs.isEmpty {
+                    center.removePendingNotificationRequests(withIdentifiers: Array(existingIDs))
+                }
+                states[alarm.id] = .unscheduled
+                return
+            }
             let missing = desired.filter { !existingIDs.contains($0.identifier) }
             let obsolete = existingIDs.subtracting(desiredIDs)
             var failures: [String] = []
