@@ -2,7 +2,7 @@
 
 An iPhone alarm project with per-alarm sound-alert or silent-notification preferences and one-time, weekly, and monthly schedules.
 
-**Status: T04 complete for the revised current-release scope.** The foundation includes a Codable alarm model and local persistence for sound alerts and silent notifications; physical delivery and deployment remain partly unverified. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
+**Status: T04 implementation complete; validation pending corrected macOS XCTest execution.** The foundation includes a Codable alarm model and local persistence for sound alerts and silent notifications; physical delivery and deployment remain partly unverified. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
 
 ## Start here
 

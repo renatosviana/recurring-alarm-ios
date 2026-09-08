@@ -36,6 +36,19 @@ jobs:
         shell: bash
         run: bash scripts/validate-architecture.sh
 
+      - name: Validate shared XCTest scheme
+        shell: bash
+        run: bash scripts/validate-xcode-test-config.sh
+
+      - name: Select an available iPhone simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          simulator_udid="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')"
+          test -n "$simulator_udid" || { echo 'No available iPhone simulator was found.' >&2; exit 1; }
+          echo "Using simulator UDID: $simulator_udid"
+          echo "SIMULATOR_UDID=$simulator_udid" >> "$GITHUB_ENV"
+
       - name: Build T01 for the iOS Simulator
         shell: bash
         run: |
@@ -45,29 +58,24 @@ jobs:
             -scheme T01PrototypeApp \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination "id=$SIMULATOR_UDID" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             clean build 2>&1 | tee "$RUNNER_TEMP/t01-xcodebuild.log"
 
-      - name: Run automated tests when a test target exists
+      - name: Run XCTest on the selected iPhone simulator
         shell: bash
         run: |
           set -o pipefail
-          project_file="T01Prototype/T01PrototypeApp.xcodeproj/project.pbxproj"
-          if grep -Eq 'com\.apple\.product-type\.(bundle\.unit-test|bundle\.ui-testing)' "$project_file"; then
-            xcodebuild \
-              -project T01Prototype/T01PrototypeApp.xcodeproj \
-              -scheme T01PrototypeApp \
-              -configuration Debug \
-              -sdk iphonesimulator \
-              -destination 'generic/platform=iOS Simulator' \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              test 2>&1 | tee "$RUNNER_TEMP/t01-xcodebuild-tests.log"
-          else
-            echo "No unit-test or UI-test target is configured; automated tests were not run."
-          fi
+          xcodebuild \
+            -project T01Prototype/T01PrototypeApp.xcodeproj \
+            -scheme T01PrototypeApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "id=$SIMULATOR_UDID" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            test 2>&1 | tee "$RUNNER_TEMP/t01-xcodebuild-tests.log"
 
       - name: Upload T01 build logs
         if: ${{ always() }}
