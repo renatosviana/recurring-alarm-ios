@@ -4,6 +4,7 @@ import SwiftUI
 struct AlarmEditorView: View {
     @ObservedObject private var store: AlarmStore
     @Environment(\.dismiss) private var dismiss
+    private let onSaved: () -> Void
     private let existingID: UUID?
     @State private var label: String
     @State private var mode: AlertMode
@@ -22,8 +23,9 @@ struct AlarmEditorView: View {
         var id: String { rawValue }
     }
 
-    init(store: AlarmStore, alarm: Alarm? = nil) {
+    init(store: AlarmStore, alarm: Alarm? = nil, onSaved: @escaping () -> Void = {}) {
         self.store = store
+        self.onSaved = onSaved
         existingID = alarm?.id
         _label = State(initialValue: alarm?.label ?? "")
         _mode = State(initialValue: alarm?.mode ?? .sound)
@@ -112,6 +114,7 @@ struct AlarmEditorView: View {
         }
         do {
             try store.upsert(Alarm(id: existingID ?? UUID(), label: label, mode: mode, schedule: schedule, isEnabled: isEnabled))
+            onSaved()
             dismiss()
         } catch let error as AlarmValidationError { validationMessage = message(for: error) }
         catch { validationMessage = error.localizedDescription }

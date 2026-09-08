@@ -15,6 +15,7 @@
 		A10000000000000000000006 /* AlarmModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* AlarmModel.swift */; };
 		A10000000000000000000007 /* AlarmStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* AlarmStore.swift */; };
 		A10000000000000000000008 /* AlarmEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* AlarmEditorView.swift */; };
+		A10000000000000000000009 /* AlarmSchedulingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* AlarmSchedulingCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		A20000000000000000000007 /* AlarmModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmModel.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* AlarmStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* AlarmEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEditorView.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* AlarmSchedulingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSchedulingCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +39,7 @@
 
 /* Begin PBXGroup section */
 		A40000000000000000000000 = {isa = PBXGroup; children = (A40000000000000000000001, A40000000000000000000002, A40000000000000000000003, A40000000000000000000004); sourceTree = "<group>"; };
-		A40000000000000000000001 /* T01PrototypeApp */ = {isa = PBXGroup; children = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000004, A20000000000000000000007, A20000000000000000000008, A20000000000000000000009); path = T01PrototypeApp; sourceTree = "<group>"; };
+		A40000000000000000000001 /* T01PrototypeApp */ = {isa = PBXGroup; children = (A20000000000000000000001, A20000000000000000000002, A20000000000000000000004, A20000000000000000000007, A20000000000000000000008, A20000000000000000000009, A20000000000000000000010); path = T01PrototypeApp; sourceTree = "<group>"; };
 		A40000000000000000000002 /* T01Prototype */ = {isa = PBXGroup; children = (A20000000000000000000003); path = "."; sourceTree = "<group>"; };
 		A40000000000000000000003 /* Products */ = {isa = PBXGroup; children = (A20000000000000000000000, A20000000000000000000006); name = Products; sourceTree = "<group>"; };
 		A40000000000000000000004 /* T01PrototypeAppTests */ = {isa = PBXGroup; children = (A20000000000000000000005); path = T01PrototypeAppTests; sourceTree = "<group>"; };
@@ -58,7 +60,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000006, A10000000000000000000007, A10000000000000000000008); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000006, A10000000000000000000007, A10000000000000000000008, A10000000000000000000009); runOnlyForDeploymentPostprocessing = 0; };
 		A30000000000000000000005 /* Test Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000005); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 

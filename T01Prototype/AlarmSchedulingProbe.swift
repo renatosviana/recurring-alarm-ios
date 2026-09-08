@@ -1,6 +1,8 @@
 import Foundation
 import UserNotifications
 
+typealias PersistedAlarm = Alarm
+
 /// The smallest scheduling probe for T01.
 ///
 /// This deliberately uses local notifications so the recurrence shapes can be
@@ -24,6 +26,29 @@ struct AlarmSchedulingProbe {
         let title: String
         let mode: AlertMode
         let schedule: Schedule
+    }
+
+    /// Plans requests for the persisted T04/T05 model without changing the
+    /// recurrence rules used by the original probe.
+    func requests(for alarm: PersistedAlarm, calendar: Calendar = .autoupdatingCurrent,
+                  from start: Date = .now, months: Int = 12) -> [UNNotificationRequest] {
+        let probeAlarm = AlarmSchedulingProbe.Alarm(
+            id: alarm.id,
+            title: alarm.label,
+            mode: alarm.mode == .sound ? .sound : .silentNotification,
+            schedule: probeSchedule(alarm.schedule))
+        return requests(for: probeAlarm, calendar: calendar, from: start, months: months)
+    }
+
+    private func probeSchedule(_ schedule: AlarmSchedule) -> AlarmSchedulingProbe.Schedule {
+        switch schedule {
+        case .oneTime(let date):
+            return .oneTime(date)
+        case .weekly(let weekdays, let hour, let minute):
+            return .weekly(weekdays: weekdays, hour: hour, minute: minute)
+        case .monthly(let days, let hour, let minute):
+            return .monthly(days: days, hour: hour, minute: minute)
+        }
     }
 
     /// Schedules one request per occurrence for the requested number of months.

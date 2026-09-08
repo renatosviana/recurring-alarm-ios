@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import UserNotifications
 @testable import T01PrototypeApp
 
 @MainActor
@@ -95,5 +96,134 @@ final class AlarmStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.alarms.first?.mode, .silentNotification)
         XCTAssertEqual(reloaded.alarms.first?.schedule,
                        .weekly(weekdays: [2, 5], hour: 10, minute: 30))
+    }
+
+    func testDeniedPermissionDoesNotAddNotification() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let alarm = Alarm(label: "Denied", mode: .sound,
+                          schedule: .oneTime(Date(timeIntervalSinceNow: 300)))
+        try store.upsert(alarm)
+        let center = FakeNotificationCenter(authorized: false)
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center)
+
+        await coordinator.reconcileAll()
+
+        XCTAssertEqual(coordinator.states[alarm.id], .permissionDenied)
+        XCTAssertTrue(center.added.isEmpty)
+    }
+
+    func testEnabledSoundAndSilentAlarmsProduceOwnedRequests() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let sound = Alarm(label: "Sound", mode: .sound,
+                          schedule: .oneTime(Date(timeIntervalSinceNow: 300)))
+        let silent = Alarm(label: "Silent", mode: .silentNotification,
+                           schedule: .oneTime(Date(timeIntervalSinceNow: 360)))
+        try store.upsert(sound)
+        try store.upsert(silent)
+        let center = FakeNotificationCenter(authorized: true)
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center)
+
+        await coordinator.reconcileAll()
+
+        XCTAssertEqual(coordinator.states[sound.id], .scheduled)
+        XCTAssertEqual(coordinator.states[silent.id], .scheduled)
+        XCTAssertEqual(center.added.count, 2)
+        XCTAssertTrue(center.added.contains { $0.content.sound != nil })
+        XCTAssertTrue(center.added.contains { $0.content.sound == nil })
+    }
+
+    func testDisabledAlarmRemovesOnlyItsOwnedRequests() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let disabled = Alarm(label: "Disabled", mode: .sound,
+                             schedule: .oneTime(Date(timeIntervalSinceNow: 300)), isEnabled: false)
+        let other = Alarm(label: "Other", mode: .sound,
+                          schedule: .oneTime(Date(timeIntervalSinceNow: 360)))
+        try store.upsert(disabled)
+        try store.upsert(other)
+        let planner = AlarmSchedulingProbe()
+        let disabledRequest = planner.requests(for: disabled).first!
+        let otherRequest = planner.requests(for: other).first!
+        let center = FakeNotificationCenter(authorized: true, pending: [disabledRequest, otherRequest])
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center)
+
+        await coordinator.reconcile(disabled)
+
+        XCTAssertEqual(center.removed, [disabledRequest.identifier])
+        XCTAssertEqual(coordinator.states[disabled.id], .unscheduled)
+        XCTAssertTrue(center.removed.contains(otherRequest.identifier) == false)
+    }
+
+    func testDeletedAlarmRemovesItsPendingRequests() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let deleted = Alarm(label: "Deleted", mode: .sound,
+                            schedule: .oneTime(Date(timeIntervalSinceNow: 300)))
+        let retained = Alarm(label: "Retained", mode: .sound,
+                             schedule: .oneTime(Date(timeIntervalSinceNow: 360)))
+        try store.upsert(deleted)
+        try store.upsert(retained)
+        let planner = AlarmSchedulingProbe()
+        let deletedRequest = planner.requests(for: deleted).first!
+        let retainedRequest = planner.requests(for: retained).first!
+        let center = FakeNotificationCenter(authorized: true,
+                                             pending: [deletedRequest, retainedRequest])
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center)
+
+        await coordinator.removeRequests(for: deleted.id)
+
+        XCTAssertEqual(center.removed, [deletedRequest.identifier])
+        XCTAssertEqual(center.pending.map(\.identifier), [retainedRequest.identifier])
+        XCTAssertEqual(coordinator.states[deleted.id], .unscheduled)
+    }
+
+    func testAddFailureIsReportedAsPartialScheduling() async throws {
+        let (defaults, key) = makeDefaults()
+        let store = AlarmStore(defaults: defaults, storageKey: key)
+        let alarm = Alarm(label: "Failure", mode: .sound,
+                          schedule: .oneTime(Date(timeIntervalSinceNow: 300)))
+        try store.upsert(alarm)
+        let center = FakeNotificationCenter(authorized: true)
+        center.shouldFailAdd = true
+        let coordinator = AlarmSchedulingCoordinator(store: store, center: center)
+
+        await coordinator.reconcile(alarm)
+
+        guard case .partialFailure(let message) = coordinator.states[alarm.id] else {
+            return XCTFail("Expected partial scheduling failure")
+        }
+        XCTAssertTrue(message.contains("add t01-"))
+    }
+}
+
+private enum FakeNotificationError: Error { case addFailed }
+
+private final class FakeNotificationCenter: NotificationSchedulingClient {
+    let authorized: Bool
+    var pending: [UNNotificationRequest]
+    var added: [UNNotificationRequest] = []
+    var removed: [String] = []
+    var shouldFailAdd = false
+
+    init(authorized: Bool, pending: [UNNotificationRequest] = []) {
+        self.authorized = authorized
+        self.pending = pending
+    }
+
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool { authorized }
+
+    func add(_ request: UNNotificationRequest) async throws {
+        if shouldFailAdd { throw FakeNotificationError.addFailed }
+        added.append(request)
+        pending.append(request)
+    }
+
+    func pendingNotificationRequests() async -> [UNNotificationRequest] { pending }
+
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
+        removed.append(contentsOf: identifiers)
+        pending.removeAll { identifiers.contains($0.identifier) }
     }
 }

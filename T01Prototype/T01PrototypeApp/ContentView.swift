@@ -2,23 +2,30 @@ import Foundation
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var alarmStore = AlarmStore()
+    @StateObject private var alarmStore: AlarmStore
+    @StateObject private var scheduler: AlarmSchedulingCoordinator
     @State private var showingEditor = false
     @State private var errorMessage: String?
+
+    init() {
+        let store = AlarmStore()
+        _alarmStore = StateObject(wrappedValue: store)
+        _scheduler = StateObject(wrappedValue: AlarmSchedulingCoordinator(store: store))
+    }
 
     var body: some View {
         NavigationStack {
             Group {
                 if alarmStore.alarms.isEmpty {
                     ContentUnavailableView("No alarms", systemImage: "alarm",
-                                           description: Text("Add an alarm to save its schedule locally."))
+                                           description: Text("Add an alarm to save and schedule it."))
                 } else {
                     List {
                         ForEach(alarmStore.alarms) { alarm in
                             NavigationLink {
-                                AlarmEditorView(store: alarmStore, alarm: alarm)
+                                AlarmEditorView(store: alarmStore, alarm: alarm, onSaved: reconcile)
                             } label: {
-                                AlarmRow(alarm: alarm)
+                                AlarmRow(alarm: alarm, state: scheduler.states[alarm.id])
                             }
                         }
                         .onDelete(perform: delete)
@@ -34,7 +41,9 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showingEditor) {
-                NavigationStack { AlarmEditorView(store: alarmStore) }
+                NavigationStack {
+                    AlarmEditorView(store: alarmStore, onSaved: reconcile)
+                }
             }
             .alert("Could not update alarm", isPresented: Binding(
                 get: { errorMessage != nil },
@@ -44,17 +53,28 @@ struct ContentView: View {
                 Text(errorMessage ?? "Unknown error")
             }
         }
+        .task { await scheduler.reconcileAll() }
+    }
+
+    private func reconcile() {
+        Task { await scheduler.reconcileAll() }
     }
 
     private func delete(at offsets: IndexSet) {
         do {
-            for index in offsets { try alarmStore.remove(id: alarmStore.alarms[index].id) }
+            let deletedIDs = offsets.map { alarmStore.alarms[$0].id }
+            for id in deletedIDs { try alarmStore.remove(id: id) }
+            Task {
+                for id in deletedIDs { await scheduler.removeRequests(for: id) }
+                await scheduler.reconcileAll()
+            }
         } catch { errorMessage = error.localizedDescription }
     }
 }
 
 private struct AlarmRow: View {
     let alarm: Alarm
+    let state: AlarmSchedulingState?
 
     var body: some View {
         HStack {
@@ -63,9 +83,21 @@ private struct AlarmRow: View {
                 Text(alarm.schedule.summary).font(.subheadline).foregroundStyle(.secondary)
                 Text(alarm.mode == .sound ? "Sound alert" : "Silent notification")
                     .font(.caption).foregroundStyle(.secondary)
+                Text(statusText).font(.caption2).foregroundStyle(.secondary)
             }
             Spacer()
             if !alarm.isEnabled { Text("Off").font(.caption).foregroundStyle(.secondary) }
+        }
+    }
+
+    private var statusText: String {
+        switch state {
+        case .scheduled: return "Scheduled; delivery not verified"
+        case .permissionDenied: return "Permission denied"
+        case .partialFailure(let message): return "Partially scheduled: \(message)"
+        case .failed(let message): return "Scheduling failed: \(message)"
+        case .unscheduled: return "Not scheduled"
+        case nil: return "Checking schedule…"
         }
     }
 }

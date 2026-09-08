@@ -1,6 +1,6 @@
 # T01 feasibility record
 
-Status: T01-T04 complete; T05 implementation complete but validation pending macOS XCTest execution. Sound alerts and silent notifications are in scope; vibration-only is deferred as an unresolved future requirement. T06 has not started. Physical delivery and recurrence checks remain untested where recorded below.
+Status: T01-T04 complete; T05 and T06 implementation complete but macOS XCTest and physical delivery validation remain pending. Sound alerts and silent notifications are in scope; vibration-only is deferred as an unresolved future requirement. A scheduled state records accepted UserNotifications requests, not delivered alerts. Physical delivery and recurrence checks remain untested where recorded below.
 
 Timestamp: 2026-09-06 (America/New_York)
 
