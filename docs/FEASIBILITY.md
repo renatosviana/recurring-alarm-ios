@@ -1,6 +1,6 @@
 # T01 feasibility record
 
-Status: T01 FEASIBILITY COMPLETE FOR REVISED CURRENT-RELEASE SCOPE: sound alerts and silent notifications are in scope; vibration-only is deferred as an unresolved future requirement. T02 is complete; T03 has not started. Physical delivery and recurrence checks remain untested where recorded below.
+Status: T01-T04 complete for the revised current-release scope: sound alerts and silent notifications are in scope; vibration-only is deferred as an unresolved future requirement. T05 has not started. Physical delivery and recurrence checks remain untested where recorded below.
 
 Timestamp: 2026-09-06 (America/New_York)
 
@@ -47,7 +47,7 @@ test screen. It is an investigation probe, not the application.
 - Monthly schedules are expanded as one-time calendar requests over a finite 12-month horizon; invalid dates are skipped. This is not indefinite monthly recurrence and the pending-request capacity must be tested on-device.
 - Each request has a stable alarm UUID plus an occurrence suffix, allowing cancellation/replacement without intentionally sharing another alarm's identifier.
 - `.sound` maps to `UNMutableNotificationContent.sound = .default`.
-- `.vibrationOnly` maps to no configured sound (`sound = nil`) only. UserNotifications does not expose a public per-request haptic-only setting, so this is not a vibration-only implementation and does not satisfy the requirement.
+- `.silentNotification` maps to no configured sound (`sound = nil`) only. UserNotifications does not expose a public per-request haptic-only setting, so this is not a vibration-only implementation and does not satisfy the deferred requirement.
 - The probe does not request continuous vibration. Alert duration and haptic behavior remain system-controlled and must be observed on a physical iPhone.
 
 ## Notification behavior versus AlarmKit
@@ -186,7 +186,7 @@ On a Mac with Xcode 26 or later:
 2. Select the `T01PrototypeApp` scheme and an iPhone simulator or connected iPhone.
 3. Set a unique bundle identifier and select a signing team for a physical iPhone.
 4. Build and run. Grant notification permission.
-5. Tap the sound and no-sound buttons using times two minutes ahead.
+5. Tap the sound and silent-notification buttons using times two minutes ahead.
 6. Tap both monthly buttons. Inspect pending requests and compare the finite
    and repeating branches.
 7. Repeat with the screen locked, app backgrounded, app terminated, Silent

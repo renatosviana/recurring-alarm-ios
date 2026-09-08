@@ -36,10 +36,11 @@ UserNotifications pending-request limit; older deprecated local-notification
 documentation describes a 64-notification limit, so capacity remains an
 explicit device check.
 
-The `.vibrationOnly` value records product intent. UserNotifications has no
-public API that requests haptics while suppressing audio, and the probe does
-not claim that `sound = nil` produces vibration. Verify this on a physical
-iPhone before accepting the requirement.
+The `silentNotification` value configures no notification audio. It is not a
+vibration-only mode: UserNotifications has no public API that requests haptics
+while suppressing audio, and the probe does not claim that `sound = nil`
+produces vibration. Per-alarm vibration-only remains a deferred future
+requirement.
 
 ## Mac verification
 

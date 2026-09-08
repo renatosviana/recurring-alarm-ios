@@ -1,8 +1,8 @@
 # Recurring Alarm for iPhone
 
-An iPhone alarm project with per-alarm sound or vibration preferences and one-time, weekly, and monthly schedules.
+An iPhone alarm project with per-alarm sound-alert or silent-notification preferences and one-time, weekly, and monthly schedules.
 
-**Status: T02 complete for the revised current-release scope.** A minimal Swift/Xcode probe supports sound alerts and silent notifications; physical delivery and deployment remain partly unverified. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
+**Status: T04 complete for the revised current-release scope.** The foundation includes a Codable alarm model and local persistence for sound alerts and silent notifications; physical delivery and deployment remain partly unverified. Per-alarm vibration-only is deferred as an unresolved future requirement. Target iPhone initially; a Mac is the development computer, not an additional app target.
 
 ## Start here
 
@@ -15,7 +15,7 @@ An iPhone alarm project with per-alarm sound or vibration preferences and one-ti
 
 Suggested repository name: `recurring-alarm-ios`
 
-Suggested description: `An iPhone alarm app with configurable sound or vibration and weekly and monthly schedules. Built step by step with coding agents.`
+Suggested description: `An iPhone alarm app with configurable sound alerts or silent notifications and weekly and monthly schedules. Built step by step with coding agents.`
 
 Extract the ZIP. Create an empty repository on GitHub with the name above. Do not initialize that remote with a README, license, or gitignore because this starter already contains files. In a terminal inside the extracted recurring-alarm-ios folder, run:
 

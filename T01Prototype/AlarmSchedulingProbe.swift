@@ -8,9 +8,9 @@ import UserNotifications
 /// sound means that this request has no configured audio; iOS still owns the
 /// decision about haptics, presentation, and duration.
 struct AlarmSchedulingProbe {
-    enum AlertMode {
+    enum AlertMode: Equatable {
         case sound
-        case vibrationOnly // Intent only; UserNotifications has no haptic-only API.
+        case silentNotification // No configured audio; does not request haptics.
     }
 
     enum Schedule {
@@ -36,7 +36,7 @@ struct AlarmSchedulingProbe {
         switch alarm.mode {
         case .sound:
             content.sound = .default
-        case .vibrationOnly:
+        case .silentNotification:
             content.sound = nil
         }
 
@@ -99,7 +99,7 @@ struct AlarmSchedulingProbe {
         switch alarm.mode {
         case .sound:
             content.sound = .default
-        case .vibrationOnly:
+        case .silentNotification:
             content.sound = nil
         }
 
